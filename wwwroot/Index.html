@@ -1,0 +1,372 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Job Opening</title>
+    <style>
+        :root {
+            --accent: #2563eb;
+            --muted: #6b7280
+        }
+
+        body {
+            font-family: Inter,Arial,Helvetica,sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px
+        }
+
+        .wrap {
+            max-width: 1000px;
+            margin: 0 auto
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin: 18px 0
+        }
+
+        .tab-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            cursor: pointer
+        }
+
+            .tab-btn.active {
+                background: var(--accent);
+                color: #fff
+            }
+
+        .panel {
+            display: none;
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e6e9ef
+        }
+
+            .panel.visible {
+                display: block
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #eef2f7;
+            text-align: left
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .primary {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer
+        }
+
+        .btn-small {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            cursor: pointer
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.35);
+            display: none;
+            align-items: center;
+            justify-content: center
+        }
+
+            .modal-backdrop.visible {
+                display: flex
+            }
+
+        .modal {
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            width: 480px
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <h1>Job Opening</h1>
+            <div class="muted">Single-controller demo • data from DB</div>
+        </header>
+
+        <div class="toolbar">
+            <button id="btnJob" class="tab-btn active">Job Opening</button>
+            <button id="btnLocation" class="tab-btn">Location</button>
+            <button id="btnDept" class="tab-btn">Department</button>
+        </div>
+
+        <main>
+            <section id="panelJob" class="panel visible">
+                <div class="actions">
+                    <button id="btnAddJob" class="primary">+ Add Job</button>
+                    <input id="searchInput" placeholder="Search jobs" />
+                </div>
+
+                <table>
+                    <thead>
+                        <tr><th>Title</th><th>Department</th><th>Location</th><th>Description</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="jobsTbody"></tbody>
+                </table>
+                <div id="jobMsg" class="muted"></div>
+            </section>
+
+            <section id="panelLocation" class="panel">
+                <div class="actions">
+                    <button id="btnAddLocation" class="btn-small">+ Add Location</button>
+                    <input id="searchLocation" placeholder="filter locations" />
+                </div>
+                <div id="locationsList"></div>
+            </section>
+
+            <section id="panelDept" class="panel">
+                <div class="actions">
+                    <button id="btnAddDept" class="btn-small">+ Add Department</button>
+                    <input id="searchDept" placeholder="filter departments" />
+                </div>
+                <div id="deptList"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal" role="document">
+            <h3 id="modalTitle">Add Job</h3>
+            <div>
+                <label>Title</label>
+                <input id="jobTitle" />
+                <label style="margin-top:8px">Department</label>
+                <select id="jobDept"></select>
+                <label style="margin-top:8px">Location</label>
+                <select id="jobLocation"></select>
+                <label style="margin-top:8px">Description</label>
+                <textarea id="jobDesc" rows="4"></textarea>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+                    <button id="btnCancel" class="btn-small">Cancel</button>
+                    <button id="btnSaveJob" class="primary">Save</button>
+                </div>
+                <div id="modalMsg" class="muted"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        const JOBS_BASE = API_BASE + '/jobs';
+        const DEPTS_BASE = API_BASE + '/departments';
+        const LOCS_BASE = API_BASE + '/locations';
+
+        let jobs = [], departments = [], locations = [], editingId = null;
+
+        async function apiFetch(url, opts = {}) {
+            const res = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts));
+            if (!res.ok) {
+                const txt = await res.text().catch(() => null);
+                throw new Error(res.status + ' ' + (txt || res.statusText));
+            }
+            const ct = res.headers.get('content-type') || '';
+            if (ct.includes('application/json')) return res.json();
+            return null;
+        }
+
+        const btnJob = document.getElementById('btnJob'), btnLocation = document.getElementById('btnLocation'), btnDept = document.getElementById('btnDept');
+        const panelJob = document.getElementById('panelJob'), panelLocation = document.getElementById('panelLocation'), panelDept = document.getElementById('panelDept');
+        function setTab(tab) {
+            [btnJob, btnLocation, btnDept].forEach(b => b.classList.remove('active'));
+            [panelJob, panelLocation, panelDept].forEach(p => p.classList.remove('visible'));
+            if (tab === 'job') { btnJob.classList.add('active'); panelJob.classList.add('visible'); loadJobs(); }
+            if (tab === 'location') { btnLocation.classList.add('active'); panelLocation.classList.add('visible'); loadLocations(); }
+            if (tab === 'dept') { btnDept.classList.add('active'); panelDept.classList.add('visible'); loadDepartments(); }
+        }
+        btnJob.onclick = () => setTab('job');
+        btnLocation.onclick = () => setTab('location');
+        btnDept.onclick = () => setTab('dept');
+
+        const jobsTbody = document.getElementById('jobsTbody'), jobMsg = document.getElementById('jobMsg'), searchInput = document.getElementById('searchInput');
+        async function loadJobs() {
+            jobMsg.textContent = '';
+            try {
+                const body = { q: searchInput.value || '', pageNo: 1, pageSize: 200 };
+                const res = await apiFetch('/api/v1/jobs/list', { method: 'POST', body: JSON.stringify(body) });
+                jobs = res.data || [];
+                renderJobs();
+            } catch (err) {
+                jobMsg.textContent = 'Load failed: ' + err.message;
+            }
+        }
+        function renderJobs() {
+            jobsTbody.innerHTML = jobs.map(j => `
+        <tr>
+          <td>${escapeHtml(j.title)}</td>
+          <td>${escapeHtml(j.department)}</td>
+          <td>${escapeHtml(j.location)}</td>
+          <td class="muted">${escapeHtml((j.description || '').slice(0, 120))}${(j.description || '').length > 120 ? '...' : ''}</td>
+          <td>
+            <button class="btn-small" data-id="${j.id}" data-action="edit">Edit</button>
+            <button class="btn-small" data-id="${j.id}" data-action="delete">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+        }
+        jobsTbody.addEventListener('click', async e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const id = btn.dataset.id, action = btn.dataset.action;
+            if (action === 'edit') openEditJob(id);
+            if (action === 'delete') {
+                if (!confirm('Delete job?')) return;
+                try { await apiFetch(JOBS_BASE + '/' + id, { method: 'DELETE' }); await loadJobs(); } catch (err) { jobMsg.textContent = err.message; }
+            }
+        });
+        searchInput.addEventListener('input', () => loadJobs());
+
+        const modal = document.getElementById('modalBackdrop'), modalTitle = document.getElementById('modalTitle'), btnCancel = document.getElementById('btnCancel'), btnSaveJob = document.getElementById('btnSaveJob');
+        const jobTitle = document.getElementById('jobTitle'), jobDept = document.getElementById('jobDept'), jobLocation = document.getElementById('jobLocation'), jobDesc = document.getElementById('jobDesc'), modalMsg = document.getElementById('modalMsg');
+
+        function openModal(title) { modalTitle.textContent = title; modal.classList.add('visible'); modalMsg.textContent = ''; }
+        function closeModal() { modal.classList.remove('visible'); editingId = null; jobTitle.value = ''; jobDept.value = ''; jobLocation.value = ''; jobDesc.value = ''; modalMsg.textContent = ''; }
+
+        document.getElementById('btnAddJob').onclick = async () => {
+            await populateSelects();
+            openModal('Add Job');
+            editingId = null;
+        };
+
+        btnCancel.onclick = closeModal;
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        async function openEditJob(id) {
+            try {
+                const job = await apiFetch(JOBS_BASE + '/' + id);
+                await populateSelects();
+                editingId = id;
+                jobTitle.value = job.title || '';
+                jobDept.value = job.department?.id || '';
+                jobLocation.value = job.location?.id || '';
+                jobDesc.value = job.description || '';
+                openModal('Edit Job');
+            } catch (err) { jobMsg.textContent = err.message; }
+        }
+
+        btnSaveJob.onclick = async () => {
+            const title = jobTitle.value.trim();
+            const deptId = parseInt(jobDept.value);
+            const locId = parseInt(jobLocation.value);
+            const desc = jobDesc.value.trim();
+            if (!title) { modalMsg.textContent = 'Title required'; return; }
+            if (!deptId) { modalMsg.textContent = 'Department required'; return; }
+            if (!locId) { modalMsg.textContent = 'Location required'; return; }
+
+            const payload = { title, description: desc, departmentId: deptId, locationId: locId };
+            try {
+                if (editingId) {
+                    await apiFetch(JOBS_BASE + '/' + editingId, { method: 'PUT', body: JSON.stringify(payload) });
+                } else {
+                    await apiFetch(JOBS_BASE, { method: 'POST', body: JSON.stringify(payload) });
+                }
+                closeModal();
+                await loadJobs();
+            } catch (err) {
+                modalMsg.textContent = 'Save failed: ' + err.message;
+            }
+        };
+
+        // DePARTMENTS & LOCATIONS
+        const locationsList = document.getElementById('locationsList'), deptList = document.getElementById('deptList');
+        async function loadDepartments() {
+            try {
+                departments = await apiFetch(DEPTS_BASE);
+                const q = (document.getElementById('searchDept').value || '').toLowerCase();
+                deptList.innerHTML = departments.filter(d => d.title.toLowerCase().includes(q)).map(d => `<div class="chip">${escapeHtml(d.title)} <span class="muted">(${d.count || 0} jobs)</span></div>`).join('');
+                populateSelects();
+            } catch (err) { deptList.innerHTML = 'Load failed: ' + err.message; }
+        }
+        async function loadLocations() {
+            try {
+                locations = await apiFetch(LOCS_BASE);
+                const q = (document.getElementById('searchLocation').value || '').toLowerCase();
+                locationsList.innerHTML = locations.filter(l => l.title.toLowerCase().includes(q)).map(l => `<div class="chip">${escapeHtml(l.title)} <span class="muted">(${l.count || 0} jobs)</span></div>`).join('');
+                populateSelects();
+            } catch (err) { locationsList.innerHTML = 'Load failed: ' + err.message; }
+        }
+        document.getElementById('btnAddDept').onclick = async () => {
+            const name = prompt('New department name');
+            if (!name) return;
+            try { await apiFetch(DEPTS_BASE, { method: 'POST', body: JSON.stringify({ title: name }) }); await loadDepartments(); } catch (err) { alert('Add failed: ' + err.message); }
+        };
+        document.getElementById('btnAddLocation').onclick = async () => {
+            const name = prompt('New location name');
+            if (!name) return;
+            try { await apiFetch(LOCS_BASE, { method: 'POST', body: JSON.stringify({ title: name }) }); await loadLocations(); } catch (err) { alert('Add failed: ' + err.message); }
+        };
+
+        document.getElementById('searchDept').addEventListener('input', () => loadDepartments());
+        document.getElementById('searchLocation').addEventListener('input', () => loadLocations());
+
+        async function populateSelects() {
+            if (!departments || departments.length === 0) await loadDepartments();
+            if (!locations || locations.length === 0) await loadLocations();
+            jobDept.innerHTML = '<option value="">-- Select department --</option>' + (departments || []).map(d => `<option value="${d.id}">${escapeHtml(d.title)}</option>`).join('');
+            jobLocation.innerHTML = '<option value="">-- Select location --</option>' + (locations || []).map(l => `<option value="${l.id}">${escapeHtml(l.title)}</option>`).join('');
+        }
+
+        function escapeHtml(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+        (async function init() { await loadDepartments(); await loadLocations(); await loadJobs(); })();
+    </script>
+</body>
+</html>

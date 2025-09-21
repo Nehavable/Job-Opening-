@@ -1,0 +1,125 @@
+{
+  "Version": 1,
+  "Hash": "ETo4L+XD0l1ylZeR9u9i7Aw0Ax6lQsfgPMxH4heMSIA=",
+  "Source": "JobManagement",
+  "BasePath": "_content/JobManagement",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "JobManagement\\wwwroot",
+      "Source": "JobManagement",
+      "ContentRoot": "C:\\NehaVable_Assement\\JobManagement\\JobManagement\\wwwroot\\",
+      "BasePath": "_content/JobManagement",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\NehaVable_Assement\\JobManagement\\JobManagement\\wwwroot\\Index.html",
+      "SourceId": "JobManagement",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\NehaVable_Assement\\JobManagement\\JobManagement\\wwwroot\\",
+      "BasePath": "_content/JobManagement",
+      "RelativePath": "Index#[.{fingerprint}]?.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "j9e5387loa",
+      "Integrity": "iXUlIjagpsbbeuXYJSMwfZ9ESfLBErPa3OIKfcGToLw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\Index.html"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "Index.html",
+      "AssetFile": "C:\\NehaVable_Assement\\JobManagement\\JobManagement\\wwwroot\\Index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "15221"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"iXUlIjagpsbbeuXYJSMwfZ9ESfLBErPa3OIKfcGToLw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Sep 2025 13:51:34 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-iXUlIjagpsbbeuXYJSMwfZ9ESfLBErPa3OIKfcGToLw="
+        }
+      ]
+    },
+    {
+      "Route": "Index.j9e5387loa.html",
+      "AssetFile": "C:\\NehaVable_Assement\\JobManagement\\JobManagement\\wwwroot\\Index.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "15221"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"iXUlIjagpsbbeuXYJSMwfZ9ESfLBErPa3OIKfcGToLw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Sep 2025 13:51:34 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "j9e5387loa"
+        },
+        {
+          "Name": "label",
+          "Value": "Index.html"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-iXUlIjagpsbbeuXYJSMwfZ9ESfLBErPa3OIKfcGToLw="
+        }
+      ]
+    }
+  ]
+}
